@@ -1,0 +1,44 @@
+name: Build & Push wrk2 Multi-Arch
+
+on:
+  workflow_dispatch:
+    inputs:
+      wrk2_commit_hash:
+        description: 'WRK2 Git Commit Hash'
+        required: false
+        default: '44a94c17d8e6a0bac8559b53da76848e430cb7a7'
+      make_flags:
+        description: 'Make 编译参数'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build & Push Multi-Arch wrk2
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: bailangvkinag/wrk2:latest
+          build-args: |
+            WRK2_COMMIT_HASH=${{ github.event.inputs.wrk2_commit_hash }}
+            MAKEFLAGS=${{ github.event.inputs.make_flags }}
