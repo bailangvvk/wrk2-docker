@@ -40,5 +40,5 @@ jobs:
           push: true
           tags: bailangvkinag/wrk2:latest
           build-args: |
-            WRK2_COMMIT_HASH=${{ github.event.inputs.wrk2_commit_hash }}
+            WRK2_COMMIT_HASH=master
             MAKEFLAGS=${{ github.event.inputs.make_flags }}
