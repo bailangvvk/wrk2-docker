@@ -16,12 +16,12 @@
 
 # Stage 1: Build wrk2 from source
 FROM alpine:3.12 as build
-ARG WRK2_COMMIT_HASH=44a94c17d8e6a0bac8559b53da76848e430cb7a7
+ARG WRK2_COMMIT_HASH=master
 ARG MAKEFLAGS=""
 RUN apk add --no-cache openssl-dev zlib-dev git make gcc musl-dev
 RUN git clone https://github.com/giltene/wrk2 && \
     cd wrk2 && git checkout $WRK2_COMMIT_HASH && \
-    make $MAKEFLAGS
+    make
 
 # Stage 2: Runtime - minimal, architecture-aware
 FROM alpine:3.12
