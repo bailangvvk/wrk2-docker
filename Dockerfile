@@ -14,16 +14,37 @@
 # COPY --from=build /wrk2/wrk /usr/bin/wrk2
 # ENTRYPOINT ["/usr/bin/wrk2"]
 
-FROM alpine:3.12 AS build
-RUN apk add --no-cache openssl-dev zlib-dev git make gcc musl-dev
-# RUN git clone -b aarch64 https://github.com/shawn1m/wrk2.git && \
-RUN git clone --depth=1 https://github.com/giltene/wrk2.git && \
-    cd wrk2 && make
+# 不支持ARM64
+# FROM alpine:3.12 AS build
+# RUN apk add --no-cache openssl-dev zlib-dev git make gcc musl-dev
+# # RUN git clone -b aarch64 https://github.com/shawn1m/wrk2.git && \
+# RUN git clone --depth=1 https://github.com/giltene/wrk2.git && \
+#     cd wrk2 && make
 
-FROM alpine:3.12
-RUN apk add --no-cache libgcc
-RUN adduser -D -H wrk_user
-USER wrk_user
-COPY --from=build /wrk2/wrk /usr/bin/wrk2
-ENTRYPOINT ["/usr/bin/wrk2"]
+# FROM alpine:3.12
+# RUN apk add --no-cache libgcc
+# RUN adduser -D -H wrk_user
+# USER wrk_user
+# COPY --from=build /wrk2/wrk /usr/bin/wrk2
+# ENTRYPOINT ["/usr/bin/wrk2"]
 
+# syntax=docker/dockerfile:1.4
+FROM alpine:3.20 AS builder
+
+ARG TARGETPLATFORM
+RUN apk add --no-cache build-base git
+
+RUN git clone --depth=1 https://github.com/giltene/wrk2.git
+WORKDIR /wrk2
+
+# === ARM64 架构需要打补丁修复 LuaJIT ===
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+        echo '#define LUAJIT_ARCH_ARM64 1' >> deps/luajit/src/lj_arch.h && \
+        echo '#define LUAJIT_TARGET LUAJIT_ARCH_ARM64' >> deps/luajit/src/lj_arch.h ; \
+    fi
+
+RUN make
+
+FROM scratch
+COPY --from=builder /wrk2/wrk /usr/local/bin/wrk
+ENTRYPOINT ["/usr/local/bin/wrk"]
