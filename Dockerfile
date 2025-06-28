@@ -31,8 +31,15 @@
 FROM alpine:3.12 AS builder
 
 # 安装依赖
-RUN apk add --no-cache build-base git openssl-dev
-
+RUN apk add --no-cache \
+    openssl-dev \
+    zlib-dev \
+    git make \
+    gcc \
+    musl-dev \
+    libbsd-dev \
+    perl
+    
 # 克隆 wrk2 仓库
 RUN git clone --depth=1 https://github.com/giltene/wrk2.git
 WORKDIR /wrk2
