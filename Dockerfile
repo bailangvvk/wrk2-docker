@@ -29,22 +29,33 @@
 # ENTRYPOINT ["/usr/bin/wrk2"]
 
 # syntax=docker/dockerfile:1.4
+
 FROM alpine:3.20 AS builder
 
 ARG TARGETPLATFORM
 RUN apk add --no-cache build-base git
 
+# 克隆 wrk2
 RUN git clone --depth=1 https://github.com/giltene/wrk2.git
 WORKDIR /wrk2
 
-# === ARM64 架构需要打补丁修复 LuaJIT ===
-RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-        echo '#define LUAJIT_ARCH_ARM64 1' >> deps/luajit/src/lj_arch.h && \
-        echo '#define LUAJIT_TARGET LUAJIT_ARCH_ARM64' >> deps/luajit/src/lj_arch.h ; \
-    fi
+# 删除原 LuaJIT
+RUN rm -rf deps/luajit
 
+# 拉取 LuaJIT 2.1.0-beta3（支持 ARM64）
+RUN git clone --branch v2.1 --depth=1 https://github.com/LuaJIT/LuaJIT.git deps/luajit
+
+# 编译 LuaJIT
+WORKDIR /wrk2/deps/luajit
+RUN make && make install PREFIX=/usr/local
+
+# 回到 wrk2 目录，编译 wrk2（使用系统 LuaJIT）
+WORKDIR /wrk2
+ENV LUAJIT_LIB=/usr/local/lib LUAJIT_INC=/usr/local/include/luajit-2.1
 RUN make
 
+# 最小运行环境
 FROM scratch
 COPY --from=builder /wrk2/wrk /usr/local/bin/wrk
 ENTRYPOINT ["/usr/local/bin/wrk"]
+
