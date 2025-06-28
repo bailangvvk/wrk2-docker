@@ -28,7 +28,8 @@
 # COPY --from=build /wrk2/wrk /usr/bin/wrk2
 # ENTRYPOINT ["/usr/bin/wrk2"]
 
-# syntax=docker/dockerfile:1.4
+
+FROM alpine:3.12 as build
 
 # 克隆 wrk2 仓库
 RUN git clone --depth=1 https://github.com/giltene/wrk2.git
