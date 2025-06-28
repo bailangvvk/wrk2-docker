@@ -30,29 +30,27 @@
 
 # syntax=docker/dockerfile:1.4
 
-FROM alpine:3.20 AS builder
-
-ARG TARGETPLATFORM
-RUN apk add --no-cache build-base git build-base openssl-dev
-
-# 克隆 wrk2
+# 克隆 wrk2 仓库
 RUN git clone --depth=1 https://github.com/giltene/wrk2.git
 WORKDIR /wrk2
 
-# 删除原 LuaJIT
-RUN rm -rf deps/luajit
+# 替换老旧 LuaJIT 为官方支持 ARM64 的新版
+RUN rm -rf deps/luajit && \
+    git clone --branch v2.1 --depth=1 https://github.com/LuaJIT/LuaJIT.git deps/luajit
 
-# 拉取 LuaJIT 2.1.0-beta3（支持 ARM64）
-RUN git clone --branch v2.1 --depth=1 https://github.com/LuaJIT/LuaJIT.git deps/luajit
-
-# 编译 LuaJIT
 WORKDIR /wrk2/deps/luajit
 RUN make && make install PREFIX=/usr/local
 
-# 回到 wrk2 目录，编译 wrk2（使用系统 LuaJIT）
+# 回 wrk2 并修补 luaL_reg 错误
 WORKDIR /wrk2
 ENV LUAJIT_LIB=/usr/local/lib LUAJIT_INC=/usr/local/include/luajit-2.1
+
+# 自动替换废弃结构体
+RUN sed -i 's/struct luaL_reg/luaL_Reg/g' src/script.c
+
+# 构建
 RUN make
+
 
 # 最小运行环境
 FROM scratch
