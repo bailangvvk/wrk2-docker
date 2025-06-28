@@ -16,7 +16,8 @@
 
 FROM alpine:3.12 AS build
 RUN apk add --no-cache openssl-dev zlib-dev git make gcc musl-dev
-RUN git clone -b aarch64 https://github.com/shawn1m/wrk2.git && \
+# RUN git clone -b aarch64 https://github.com/shawn1m/wrk2.git && \
+RUN git clone --depth=1 https://github.com/giltene/wrk2.git && \
     cd wrk2 && make
 
 FROM alpine:3.12
