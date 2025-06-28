@@ -33,7 +33,7 @@
 FROM alpine:3.20 AS builder
 
 ARG TARGETPLATFORM
-RUN apk add --no-cache build-base git
+RUN apk add --no-cache build-base git build-base openssl-dev
 
 # 克隆 wrk2
 RUN git clone --depth=1 https://github.com/giltene/wrk2.git
