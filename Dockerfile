@@ -20,7 +20,7 @@ RUN set -eux && apk add --no-cache \
     make clean && \
     make WITH_OPENSSL=1 \
     && ls -lh /wrk2/wrk \
-    && strip -v --strip-all /wrk/wrk \
+    && strip -v --strip-all /wrk2/wrk \
     && ls -lh /wrk2/wrk
 
 # 阶段2: 运行层
