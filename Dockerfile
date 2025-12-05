@@ -30,7 +30,7 @@ FROM alpine:3.19
 RUN apk add --no-cache libgcc
 
 # 从编译层复制wrk二进制文件
-COPY --from=build /wrk2/wrk /usr/bin/wrk2
+COPY --from=builder /wrk2/wrk /usr/bin/wrk2
 
 # 设置入口点
 ENTRYPOINT ["/usr/bin/wrk2"]
